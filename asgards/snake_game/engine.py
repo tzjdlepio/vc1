@@ -1,5 +1,5 @@
 import random
-from constants import WINDOW_WIDTH, WINDOW_HEIGHT, GRID_SIZE, DIR_RIGHT
+from asgards.snake_game.constants import WINDOW_WIDTH, WINDOW_HEIGHT, GRID_SIZE, DIR_RIGHT
 
 class SnakeGame:
     """

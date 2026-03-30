@@ -1,8 +1,21 @@
-import pygame
+import os
 import sys
-from engine import SnakeGame
-from ui import SnakeUI
-from constants import (
+
+# --- 路徑自動校正 (Path Hack) ---
+# 取得目前檔案 (main.py) 的絕對路徑
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# 取得專案根目錄 (即包含 asgards 資料夾的那一層)
+project_root = os.path.abspath(os.path.join(current_dir, "../../"))
+
+# 將專案根目錄加入 Python 的搜尋路徑中
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+# ------------------------------
+
+import pygame
+from asgards.snake_game.engine import SnakeGame
+from asgards.snake_game.ui import SnakeUI
+from asgards.snake_game.constants import (
     WINDOW_WIDTH, WINDOW_HEIGHT, SNAKE_SPEED,
     DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT,
     COLOR_RED

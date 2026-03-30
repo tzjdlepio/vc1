@@ -1,5 +1,5 @@
 import pygame
-from constants import (
+from asgards.snake_game.constants import (
     WINDOW_WIDTH, WINDOW_HEIGHT, GRID_SIZE,
     COLOR_BLACK, COLOR_WHITE, COLOR_RED, COLOR_GREEN, COLOR_BLUE
 )

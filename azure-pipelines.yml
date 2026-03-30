@@ -45,7 +45,7 @@ stages:
     - task: SonarCloudPrepare@4
       inputs:
         SonarCloud: 'MySonarQube'
-        organization: 'your-org-key'
+        organization: 'john19968010'
         scannerMode: 'cli'
         configMode: 'manual'
         cliProjectKey: 'john19968010_Leo_112502528'
