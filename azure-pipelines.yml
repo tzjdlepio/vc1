@@ -33,10 +33,10 @@ stages:
         python -m unittest discover tests
       displayName: '執行單元測試'
 
-    - stage: CodeQuality
-    displayName: '程式碼品質檢查階段'
-    jobs:
-    - job: SonarAnalysis
+- stage: CodeQuality
+  displayName: '程式碼品質檢查階段'
+  jobs:
+  - job: SonarAnalysis
     displayName: 'SonarQube 分析'
     steps:
     # 1. 準備 SonarQube 分析環境
@@ -62,4 +62,3 @@ stages:
       inputs:
         pollingTimeoutSec: '300'
       displayName: '發佈品質門檻結果'
-
