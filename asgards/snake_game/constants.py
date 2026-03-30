@@ -1,0 +1,25 @@
+# 遊戲常數定義
+# 遵循憲法原則：易維護性與簡單維護
+
+# 視窗尺寸
+WINDOW_WIDTH = 600
+WINDOW_HEIGHT = 400
+
+# 網格大小 (像素)
+GRID_SIZE = 20
+
+# 遊戲速度 (FPS)
+SNAKE_SPEED = 10
+
+# 顏色定義 (RGB)
+COLOR_BLACK = (0, 0, 0)
+COLOR_WHITE = (255, 255, 255)
+COLOR_RED = (213, 50, 80)
+COLOR_GREEN = (0, 255, 0)
+COLOR_BLUE = (50, 153, 213)
+
+# 移動方向向量
+DIR_UP = (0, -GRID_SIZE)
+DIR_DOWN = (0, GRID_SIZE)
+DIR_LEFT = (-GRID_SIZE, 0)
+DIR_RIGHT = (GRID_SIZE, 0)
