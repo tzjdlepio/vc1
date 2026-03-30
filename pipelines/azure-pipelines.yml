@@ -2,7 +2,7 @@
 # 遵循憲法原則：自動觸發、SonarQube 檢查、極簡流程
 
 trigger:
-- main  # 當 main 分支有 commit 時自動觸發
+- 001-snake-game  # 當此分支有 commit 時自動觸發
 
 pool:
   vmImage: 'ubuntu-latest'
