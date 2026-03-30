@@ -1,5 +1,5 @@
-# Azure DevOps Pipeline 定義檔
-# 遵循憲法原則：自動觸發、SonarQube 檢查、極簡流程
+# Azure DevOps Pipeline 定義檔 (SonarCloud 版本)
+# 遵循憲法原則：自動觸發、SonarCloud 檢查、極簡流程
 
 trigger:
 - 001-snake-game  # 當此分支有 commit 時自動觸發
@@ -37,28 +37,29 @@ stages:
   displayName: '程式碼品質檢查階段'
   jobs:
   - job: SonarAnalysis
-    displayName: 'SonarQube 分析'
+    displayName: 'SonarCloud 分析'
     steps:
-    # 1. 準備 SonarQube 分析環境
-    - task: SonarQubePrepare@5
+    # 1. 準備 SonarCloud 分析環境
+    - task: SonarCloudPrepare@1
       inputs:
-        SonarQube: 'MySonarQube'  # 您的 Service Connection 名稱
+        SonarCloud: 'MySonarCloud'  # [需修改] 您在 ADO 建立的 SonarCloud Service Connection 名稱
+        organization: 'your-org-key' # [需修改] 您在 SonarCloud 上的 Organization Key
         scannerMode: 'CLI'
         configMode: 'manual'
-        cliProjectKey: 'john19968010_Leo_112502528'
-        cliProjectName: 'Leo_112502528'
+        cliProjectKey: 'john19968010_Leo_112502528' # 您的 Project Key
+        cliProjectName: 'Leo_112502528'             # 您的 Project Name
         cliSources: 'asgards'    # 掃描原始碼目錄
         extraProperties: |
           sonar.tests=tests
           sonar.python.version=3
-      displayName: '準備 SonarQube 分析'
+      displayName: '準備 SonarCloud 分析'
 
     # 2. 執行代碼掃描
-    - task: SonarQubeAnalyze@5
-      displayName: '執行 SonarQube 代碼掃描'
+    - task: SonarCloudAnalyze@1
+      displayName: '執行 SonarCloud 代碼掃描'
 
     # 3. 發佈品質門檻 (Quality Gate) 結果
-    - task: SonarQubePublish@5
+    - task: SonarCloudPublish@1
       inputs:
         pollingTimeoutSec: '300'
       displayName: '發佈品質門檻結果'
