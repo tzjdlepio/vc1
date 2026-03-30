@@ -39,27 +39,27 @@ stages:
   - job: SonarAnalysis
     displayName: 'SonarCloud 分析'
     steps:
-    # 1. 準備 SonarCloud 分析環境
-    - task: SonarCloudPrepare@1
+    - checkout: self
+      fetchDepth: 0
+
+    - task: SonarCloudPrepare@4
       inputs:
-        SonarCloud: 'MySonarCloud'  # [需修改] 您在 ADO 建立的 SonarCloud Service Connection 名稱
-        organization: 'your-org-key' # [需修改] 您在 SonarCloud 上的 Organization Key
-        scannerMode: 'CLI'
+        SonarCloud: 'MySonarCloud'
+        organization: 'your-org-key'
+        scannerMode: 'cli'
         configMode: 'manual'
-        cliProjectKey: 'john19968010_Leo_112502528' # 您的 Project Key
-        cliProjectName: 'Leo_112502528'             # 您的 Project Name
-        cliSources: 'asgards'    # 掃描原始碼目錄
+        cliProjectKey: 'john19968010_Leo_112502528'
+        cliProjectName: 'Leo_112502528'
+        cliSources: 'asgards'
         extraProperties: |
           sonar.tests=tests
           sonar.python.version=3
       displayName: '準備 SonarCloud 分析'
 
-    # 2. 執行代碼掃描
-    - task: SonarCloudAnalyze@1
+    - task: SonarCloudAnalyze@4
       displayName: '執行 SonarCloud 代碼掃描'
 
-    # 3. 發佈品質門檻 (Quality Gate) 結果
-    - task: SonarCloudPublish@1
+    - task: SonarCloudPublish@4
       inputs:
         pollingTimeoutSec: '300'
       displayName: '發佈品質門檻結果'
