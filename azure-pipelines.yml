@@ -4,6 +4,9 @@
 trigger:
 - 001-snake-game
 
+pr:
+- 001-snake-game
+
 pool:
   vmImage: 'ubuntu-latest'
 
