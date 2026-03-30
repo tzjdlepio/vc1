@@ -1,14 +1,13 @@
-# Azure DevOps Pipeline 定義檔 (SonarCloud 版本)
-# 遵循憲法原則：自動觸發、SonarCloud 檢查、極簡流程
+# Azure DevOps Pipeline 定義檔 (SonarCloud 修正版)
+# 遵循憲法原則：自動觸發、SonarCloud 檢查、詳細日誌診斷
 
 trigger:
-- 001-snake-game  # 當此分支有 commit 時自動觸發
+- 001-snake-game
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  # 憲法提醒：嚴禁在此硬編碼 Secrets，請使用 Variable Groups
   pythonVersion: '3.9'
 
 stages:
@@ -25,11 +24,13 @@ stages:
 
     - script: |
         python -m pip install --upgrade pip
-        # 這裡可以安裝依賴，例如：pip install -r requirements.txt
+        # 若有 requirements.txt 則安裝
+        if [ -f asgards/snake_game/requirements.txt ]; then
+          pip install -r asgards/snake_game/requirements.txt
+        fi
       displayName: '安裝依賴'
 
     - script: |
-        # 執行測試的範例命令
         python -m unittest discover tests
       displayName: '執行單元測試'
 
@@ -39,26 +40,29 @@ stages:
   - job: SonarAnalysis
     displayName: 'SonarCloud 分析'
     steps:
-    - checkout: self
-      fetchDepth: 0
-
+    # 1. 準備 SonarCloud 分析環境 (使用 @4 版本)
     - task: SonarCloudPrepare@4
       inputs:
-        SonarCloud: 'MySonarQube'
-        organization: 'john19968010'
-        scannerMode: 'cli'
+        SonarCloud: 'MySonarQube'  # 請確認此名稱與 ADO Service Connection 一致
+        organization: 'john19968010' # 請替換為您的 Org Key
+        scannerMode: 'CLI'
         configMode: 'manual'
         cliProjectKey: 'john19968010_Leo_112502528'
         cliProjectName: 'Leo_112502528'
-        cliSources: 'asgards'
+        cliSources: '.'             # 擴大範圍至根目錄，避免找不到路徑
         extraProperties: |
           sonar.tests=tests
           sonar.python.version=3
+          sonar.verbose=true
+          sonar.log.level=DEBUG
+          sonar.exclusions=**/__pycache__/**, **/*.pyc
       displayName: '準備 SonarCloud 分析'
 
+    # 2. 執行代碼掃描 (使用 @4 版本)
     - task: SonarCloudAnalyze@4
       displayName: '執行 SonarCloud 代碼掃描'
 
+    # 3. 發佈品質門檻結果 (使用 @4 版本)
     - task: SonarCloudPublish@4
       inputs:
         pollingTimeoutSec: '300'
