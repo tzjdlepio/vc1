@@ -52,13 +52,14 @@ stages:
         configMode: 'manual'
         cliProjectKey: 'john19968010_Leo_112502528'
         cliProjectName: 'Leo_112502528'
-        cliSources: '.'             # 擴大範圍至根目錄，避免找不到路徑
+        cliSources: 'asgards'             # 擴大範圍至根目錄，避免找不到路徑
         extraProperties: |
           sonar.tests=tests
           sonar.python.version=3
           sonar.verbose=true
           sonar.log.level=DEBUG
           sonar.exclusions=**/__pycache__/**, **/*.pyc
+          sonar.test.inclusions=tests/**/*.py
       displayName: '準備 SonarCloud 分析'
 
     # 2. 執行代碼掃描 (使用 @4 版本)
