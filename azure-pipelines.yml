@@ -20,6 +20,8 @@ stages:
   - job: RunTests
     displayName: '執行單元測試'
     steps:
+    - checkout: self
+      fetchDepth: 0
     - task: UsePythonVersion@0
       inputs:
         versionSpec: $(pythonVersion)
@@ -43,6 +45,8 @@ stages:
   - job: SonarAnalysis
     displayName: 'SonarCloud 分析'
     steps:
+    - checkout: self
+      fetchDepth: 0
     # 1. 準備 SonarCloud 分析環境 (使用 @4 版本)
     - task: SonarCloudPrepare@4
       inputs:
