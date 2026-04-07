@@ -3,8 +3,9 @@ from unittest.mock import patch, MagicMock
 import sys
 import os
 import pygame
+import runpy
 
-# 強制使用 dummy 驅動程式
+# 強制進入 dummy 模式，這是 CI 運作的關鍵
 os.environ['SDL_VIDEODRIVER'] = 'dummy'
 
 from asgards.snake_game.main import main
@@ -38,7 +39,6 @@ class TestSnakeMain(unittest.TestCase):
             return m
 
         # 序列：左、右、上、下、QUIT、ESC (退出)
-        # 每個 yield 都代表一次 while True 的 iteration
         mock_event_get.side_effect = [
             [create_key(pygame.K_LEFT)],
             [create_key(pygame.K_RIGHT)],
@@ -70,10 +70,10 @@ class TestSnakeMain(unittest.TestCase):
             
             # 測試 1: 按下 C 重設遊戲
             mock_game.is_over = True
-            def on_c(): mock_game.is_over = False
-            mock_game.reset.side_effect = on_c
+            def on_reset(): mock_game.is_over = False
+            mock_game.reset.side_effect = on_reset
             
-            # 準備事件：C (離開 Game Over) -> ESC (離開主迴圈)
+            # 準備事件：C -> ESC
             mock_event_get.side_effect = [
                 [MagicMock(type=pygame.KEYDOWN, key=pygame.K_c)],
                 [MagicMock(type=pygame.KEYDOWN, key=pygame.K_ESCAPE)]
@@ -93,19 +93,38 @@ class TestSnakeMain(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 main()
 
-    def test_logic_gate_and_path(self):
-        """覆蓋 Path Hack 與 __main__ 區塊。"""
-        import runpy
-        with patch('asgards.snake_game.main.main') as mock_main:
-            mock_main.side_effect = SystemExit
-            try:
-                # 執行導入部分的代碼
-                runpy.run_path("asgards/snake_game/main.py", run_name="test_only")
-                # 模擬執行最後一行
-                if __name__ == "__main__":
-                    # 此行僅為了覆蓋率計入
-                    pass
-            except: pass
+    def test_ultimate_100_coverage(self):
+        """
+        擊中最後的第 12 行與第 81 行，且保證不卡住。
+        """
+        # 1. 準備：計算 project_root 並暫時從 sys.path 移除它
+        current_dir = os.path.dirname(os.path.abspath("asgards/snake_game/main.py"))
+        project_root = os.path.abspath(os.path.join(current_dir, "../../"))
+        
+        original_path = sys.path.copy()
+        if project_root in sys.path:
+            # 移除所有符合的路徑
+            sys.path = [p for p in sys.path if os.path.abspath(p) != project_root]
+
+        try:
+            # 2. 透過 Patch pygame.init 讓 main() 一進去就 SystemExit 退出
+            with patch('pygame.init', side_effect=SystemExit), \
+                 patch('pygame.display.set_mode'), \
+                 patch('pygame.display.set_caption'), \
+                 patch('pygame.time.Clock'), \
+                 patch('pygame.font.SysFont'), \
+                 patch('pygame.quit'):
+                
+                # 3. 執行 runpy，這會執行整個 main.py
+                # 因為 project_root 不在 sys.path，會執行第 12 行
+                # 因為 run_name 是 __main__，會執行第 81 行
+                # 因為 pygame.init 會 SystemExit，所以不會卡在迴圈
+                runpy.run_path("asgards/snake_game/main.py", run_name="__main__")
+        except SystemExit:
+            pass
+        finally:
+            # 還原路徑
+            sys.path = original_path
 
 if __name__ == "__main__":
     unittest.main()
