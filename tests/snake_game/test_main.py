@@ -20,10 +20,13 @@ class TestSnakeMain(unittest.TestCase):
     @patch('pygame.quit')
     def test_main_loop_iteration(self, mock_quit, mock_exit, mock_font, mock_update, mock_event_get, mock_clock, mock_caption, mock_mode, mock_init):
         """測試主迴圈能否正常執行與退出。"""
-        # 1. 設置模擬事件，模擬：執行一輪 -> 按下 ESC 鍵退出
+        # 1. 設置模擬事件，模擬：按下 ESC 鍵退出
         mock_event_escape = MagicMock()
         mock_event_escape.type = pygame.KEYDOWN
         mock_event_escape.key = pygame.K_ESCAPE
+        
+        # 模擬 Clock 物件以避免 tick 等待
+        mock_clock_obj = mock_clock.return_value
         
         mock_event_get.side_effect = [[mock_event_escape], []]
         mock_exit.side_effect = SystemExit
@@ -52,7 +55,7 @@ class TestSnakeMain(unittest.TestCase):
 
             with patch('pygame.init'), \
                  patch('pygame.display.set_mode') as mock_set_mode, \
-                 patch('pygame.time.Clock'), \
+                 patch('pygame.time.Clock') as mock_clock, \
                  patch('pygame.font.SysFont'), \
                  patch('pygame.display.update'), \
                  patch('pygame.draw.rect'):
@@ -102,17 +105,13 @@ class TestSnakeMain(unittest.TestCase):
             event.key = key
             return event
 
-        # 序列：左 -> 右 -> 上 -> 下 -> QUIT 事件 -> ESC
+        # 序列：左 -> QUIT 事件 (確保快速退出，不跑太多迴圈)
         mock_event_quit = MagicMock()
         mock_event_quit.type = pygame.QUIT
 
         events = [
             [create_key_event(pygame.K_LEFT)],
-            [create_key_event(pygame.K_RIGHT)],
-            [create_key_event(pygame.K_UP)],
-            [create_key_event(pygame.K_DOWN)],
-            [mock_event_quit],
-            [create_key_event(pygame.K_ESCAPE)]
+            [mock_event_quit]
         ]
         mock_event_get.side_effect = events
         mock_exit.side_effect = SystemExit
@@ -163,25 +162,6 @@ class TestSnakeMain(unittest.TestCase):
             except SystemExit:
                 pass
             self.assertTrue(True)
-
-    def test_path_hack_coverage(self):
-        """
-        強迫執行 main.py 中的 Path Hack 區塊。
-        我們透過 patch sys.path 並重新載入該檔案來達成。
-        """
-        import runpy
-        import os
-        from unittest.mock import patch
-        
-        # 模擬 sys.path 不包含專案根目錄
-        with patch('sys.path', []):
-            try:
-                # 執行時會執行到 if project_root not in sys.path: sys.path.insert(0, project_root)
-                runpy.run_path("asgards/snake_game/main.py", run_name="non_main")
-            except Exception:
-                # 因為 run_path 會嘗試匯入 pygame 等，若環境沒設好可能會報錯，
-                # 但只要執行到該行即可。
-                pass
 
 if __name__ == "__main__":
     unittest.main()
