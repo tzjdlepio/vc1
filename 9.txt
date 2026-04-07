@@ -1,0 +1,101 @@
+2026-04-07T12:10:22.7861147Z ##[section]Starting: Run Unittests with Coverage
+2026-04-07T12:10:22.7866620Z ==============================================================================
+2026-04-07T12:10:22.7866891Z Task         : Command line
+2026-04-07T12:10:22.7867149Z Description  : Run a command line script using Bash on Linux and macOS and cmd.exe on Windows
+2026-04-07T12:10:22.7867413Z Version      : 2.268.0
+2026-04-07T12:10:22.7867629Z Author       : Microsoft Corporation
+2026-04-07T12:10:22.7867847Z Help         : https://docs.microsoft.com/azure/devops/pipelines/tasks/utility/command-line
+2026-04-07T12:10:22.7868085Z ==============================================================================
+2026-04-07T12:10:22.9107231Z Generating script.
+2026-04-07T12:10:22.9121526Z ========================== Starting Command Output ===========================
+2026-04-07T12:10:22.9151594Z [command]/usr/bin/bash --noprofile --norc /home/vsts/work/_temp/5d4cab3f-c91b-4790-9d8e-1e792fdd6c6c.sh
+2026-04-07T12:10:23.6564089Z ============================= test session starts ==============================
+2026-04-07T12:10:23.6565920Z platform linux -- Python 3.9.25, pytest-8.4.2, pluggy-1.6.0
+2026-04-07T12:10:23.6568187Z rootdir: /home/vsts/work/1/s
+2026-04-07T12:10:23.6573072Z plugins: cov-7.1.0
+2026-04-07T12:10:23.6573550Z collected 23 items
+2026-04-07T12:10:23.6573725Z 
+2026-04-07T12:10:23.6877290Z tests/snake_game/test_engine.py .........                                [ 39%]
+2026-04-07T12:10:23.9127474Z tests/snake_game/test_main.py F...                                       [ 56%]
+2026-04-07T12:10:23.9331379Z tests/snake_game/test_ui.py .....                                        [ 78%]
+2026-04-07T12:10:24.0183994Z tests/test_hello.py .....                                                [100%]
+2026-04-07T12:10:24.0187636Z 
+2026-04-07T12:10:24.0189142Z =================================== FAILURES ===================================
+2026-04-07T12:10:24.0190003Z ______________________ TestSnakeMain.test_game_over_reset ______________________
+2026-04-07T12:10:24.0190377Z 
+2026-04-07T12:10:24.0191167Z self = <test_main.TestSnakeMain testMethod=test_game_over_reset>
+2026-04-07T12:10:24.0191754Z mock_event_get = <MagicMock name='get' id='140450414008256'>
+2026-04-07T12:10:24.0192062Z 
+2026-04-07T12:10:24.0192498Z     @patch('pygame.event.get')
+2026-04-07T12:10:24.0192991Z     def test_game_over_reset(self, mock_event_get):
+2026-04-07T12:10:24.0193931Z         """測試 Game Over 狀態下的重設 (C 鍵)。"""
+2026-04-07T12:10:24.0194503Z         with patch('asgards.snake_game.main.SnakeGame') as mock_game_class:
+2026-04-07T12:10:24.0195037Z             mock_game = mock_game_class.return_value
+2026-04-07T12:10:24.0195524Z             mock_game.is_over = True
+2026-04-07T12:10:24.0195952Z     
+2026-04-07T12:10:24.0196388Z             mock_event_c = MagicMock()
+2026-04-07T12:10:24.0196861Z             mock_event_c.type = pygame.KEYDOWN
+2026-04-07T12:10:24.0197335Z             mock_event_c.key = pygame.K_c
+2026-04-07T12:10:24.0197755Z     
+2026-04-07T12:10:24.0198253Z             # 退出用的事件
+2026-04-07T12:10:24.0198727Z             mock_event_q = MagicMock()
+2026-04-07T12:10:24.0199195Z             mock_event_q.type = pygame.KEYDOWN
+2026-04-07T12:10:24.0199664Z             mock_event_q.key = pygame.K_q
+2026-04-07T12:10:24.0200083Z     
+2026-04-07T12:10:24.0200848Z             # 1. 進入 is_over 迴圈 -> 收到 C -> reset()
+2026-04-07T12:10:24.0201667Z             # 2. reset 讓 is_over 變 False -> 進入主迴圈 -> 收到 Q -> 退出
+2026-04-07T12:10:24.0202206Z             mock_event_get.side_effect = [[mock_event_c], [mock_event_q]]
+2026-04-07T12:10:24.0202679Z     
+2026-04-07T12:10:24.0203087Z             def mock_reset():
+2026-04-07T12:10:24.0203541Z                 mock_game.is_over = False
+2026-04-07T12:10:24.0204026Z             mock_game.reset.side_effect = mock_reset
+2026-04-07T12:10:24.0204479Z     
+2026-04-07T12:10:24.0204990Z             with patch('pygame.init'), patch('pygame.display.set_mode') as mock_mode, patch('pygame.time.Clock'), \
+2026-04-07T12:10:24.0205637Z                  patch('pygame.font.SysFont'), patch('pygame.display.update'), patch('pygame.draw.rect'), patch('sys.exit') as mock_exit:
+2026-04-07T12:10:24.0206867Z     
+2026-04-07T12:10:24.0207321Z                 mock_mode.return_value = self.mock_screen
+2026-04-07T12:10:24.0207806Z                 mock_exit.side_effect = SystemExit
+2026-04-07T12:10:24.0208245Z     
+2026-04-07T12:10:24.0208710Z                 with self.assertRaises(SystemExit):
+2026-04-07T12:10:24.0209163Z >                   main()
+2026-04-07T12:10:24.0209421Z 
+2026-04-07T12:10:24.0209878Z tests/snake_game/test_main.py:129: 
+2026-04-07T12:10:24.0210406Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-04-07T12:10:24.0211251Z asgards/snake_game/main.py:54: in main
+2026-04-07T12:10:24.0211746Z     for event in pygame.event.get():
+2026-04-07T12:10:24.0212289Z /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/unittest/mock.py:1092: in __call__
+2026-04-07T12:10:24.0212835Z     return self._mock_call(*args, **kwargs)
+2026-04-07T12:10:24.0213395Z /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/unittest/mock.py:1096: in _mock_call
+2026-04-07T12:10:24.0213948Z     return self._execute_mock_call(*args, **kwargs)
+2026-04-07T12:10:24.0214468Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-04-07T12:10:24.0214751Z 
+2026-04-07T12:10:24.0215381Z     def _execute_mock_call(self, /, *args, **kwargs):
+2026-04-07T12:10:24.0215907Z         # separate from _increment_mock_call so that awaited functions are
+2026-04-07T12:10:24.0216458Z         # executed separately from their call, also AsyncMock overrides this method
+2026-04-07T12:10:24.0216939Z     
+2026-04-07T12:10:24.0217374Z         effect = self.side_effect
+2026-04-07T12:10:24.0217825Z         if effect is not None:
+2026-04-07T12:10:24.0218280Z             if _is_exception(effect):
+2026-04-07T12:10:24.0218727Z                 raise effect
+2026-04-07T12:10:24.0219283Z             elif not _callable(effect):
+2026-04-07T12:10:24.0219758Z >               result = next(effect)
+2026-04-07T12:10:24.0220198Z E               StopIteration
+2026-04-07T12:10:24.0220460Z 
+2026-04-07T12:10:24.0221194Z /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/unittest/mock.py:1153: StopIteration
+2026-04-07T12:10:24.0221803Z =============================== warnings summary ===============================
+2026-04-07T12:10:24.0222408Z ../../../../../opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/pygame/pkgdata.py:25
+2026-04-07T12:10:24.0223157Z   /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/pygame/pkgdata.py:25: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+2026-04-07T12:10:24.0223853Z     from pkg_resources import resource_stream, resource_exists
+2026-04-07T12:10:24.0224168Z 
+2026-04-07T12:10:24.0224636Z -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2026-04-07T12:10:24.0225197Z ----------- generated xml file: /home/vsts/work/1/s/test-results.xml -----------
+2026-04-07T12:10:24.0225779Z ================================ tests coverage ================================
+2026-04-07T12:10:24.0226361Z _______________ coverage: platform linux, python 3.9.25-final-0 ________________
+2026-04-07T12:10:24.0226681Z 
+2026-04-07T12:10:24.0227113Z Coverage XML written to file coverage.xml
+2026-04-07T12:10:24.0227629Z =========================== short test summary info ============================
+2026-04-07T12:10:24.0228207Z FAILED tests/snake_game/test_main.py::TestSnakeMain::test_game_over_reset - S...
+2026-04-07T12:10:24.0228767Z =================== 1 failed, 22 passed, 1 warning in 0.59s ====================
+2026-04-07T12:10:24.0541189Z 
+2026-04-07T12:10:24.0558950Z ##[error]Bash exited with code '1'.
+2026-04-07T12:10:24.0623681Z ##[section]Finishing: Run Unittests with Coverage
