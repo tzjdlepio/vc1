@@ -1,12 +1,6 @@
-# Azure DevOps Pipeline 定義檔 (SonarCloud 修正版)
-# 遵循憲法原則：自動觸發、SonarCloud 檢查、詳細日誌診斷
-
 trigger:
 - main
 
-pr:
-- 001-snake-game
- 
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -14,64 +8,91 @@ variables:
   pythonVersion: '3.9'
 
 stages:
-- stage: BuildAndTest
-  displayName: '編譯與測試階段'
+- stage: QualityAndTest
+  displayName: 'Quality and Unit Test'
   jobs:
   - job: RunTests
-    displayName: '執行單元測試'
+    displayName: 'Pytest & Sonar Analysis'
     steps:
     - checkout: self
       fetchDepth: 0
+
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: $(pythonVersion)
-      displayName: '設定 Python 環境'
+        versionSpec: '$(pythonVersion)'
 
     - script: |
         python -m pip install --upgrade pip
-        # 若有 requirements.txt 則安裝
+        pip install -r requirements-dev.txt
+        # 如果 asgards 底下有其他的 requirements 也一併安裝
         if [ -f asgards/snake_game/requirements.txt ]; then
           pip install -r asgards/snake_game/requirements.txt
         fi
-      displayName: '安裝依賴'
+      displayName: 'Install dependencies'
 
     - script: |
-        python -m unittest discover tests
-      displayName: '執行單元測試'
+        # 紀錄執行開始
+        python scripts/metrics_logger.py
+      displayName: 'Initialize Metrics'
 
-- stage: CodeQuality
-  displayName: '程式碼品質檢查階段'
-  jobs:
-  - job: SonarAnalysis
-    displayName: 'SonarCloud 分析'
-    steps:
-    - checkout: self
-      fetchDepth: 0
-    # 1. 準備 SonarCloud 分析環境 (使用 @4 版本)
+    - script: |
+        # 產出 test-results.xml 與 coverage.xml
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        pytest tests/ --doctest-modules --junitxml=test-results.xml --cov=asgards --cov-report=xml:coverage.xml
+      displayName: 'Run Unittests with Coverage'
+
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/test-results.xml'
+        testRunTitle: 'Python $(pythonVersion) Unit Tests'
+
+    - task: PublishCodeCoverageResults@2
+      inputs:
+        summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage.xml'
+        pathToSources: '$(System.DefaultWorkingDirectory)/asgards'
+
+    # SonarQube Cloud 整合 (使用 v4 版本與您原本的設定)
     - task: SonarCloudPrepare@4
       inputs:
-        SonarCloud: 'MySonarQube'  # 請確認此名稱與 ADO Service Connection 一致
-        organization: 'john19968010' # 請替換為您的 Org Key
+        SonarCloud: 'MySonarQube'
+        organization: 'john19968010'
         scannerMode: 'CLI'
-        configMode: 'manual'
-        cliProjectKey: 'john19968010_Leo_112502528'
-        cliProjectName: 'Leo_112502528'
-        cliSources: 'asgards'             # 擴大範圍至根目錄，避免找不到路徑
-        extraProperties: |
-          sonar.tests=tests
-          sonar.python.version=3
-          sonar.verbose=true
-          sonar.log.level=DEBUG
-          sonar.exclusions=**/__pycache__/**, **/*.pyc
-          sonar.test.inclusions=tests/**/*.py
-      displayName: '準備 SonarCloud 分析'
+        configMode: 'file'
+        configFile: 'sonar-project.properties'
 
-    # 2. 執行代碼掃描 (使用 @4 版本)
     - task: SonarCloudAnalyze@4
-      displayName: '執行 SonarCloud 代碼掃描'
 
-    # 3. 發佈品質門檻結果 (使用 @4 版本)
     - task: SonarCloudPublish@4
       inputs:
         pollingTimeoutSec: '300'
-      displayName: '發佈品質門檻結果'
+
+- stage: Performance
+  displayName: 'Performance Measurement'
+  dependsOn: QualityAndTest
+  jobs:
+  - job: Benchmark
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+
+    - script: |
+        pip install psutil
+        python scripts/benchmark.py
+      displayName: 'Run Performance Benchmark'
+
+    - script: |
+        # 模擬記錄 Token 與效能階段耗時
+        python -c "from scripts.metrics_logger import MetricsLogger; l=MetricsLogger('performance_stage'); l.log_tokens(500, 200); l.save()"
+      displayName: 'Log Performance Metrics'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: 'performance_report.json'
+        ArtifactName: 'PerformanceReports'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: 'execution_metrics.json'
+        ArtifactName: 'ExecutionMetrics'
