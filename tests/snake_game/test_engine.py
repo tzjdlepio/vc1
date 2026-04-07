@@ -91,5 +91,12 @@ class TestSnakeGame(unittest.TestCase):
         self.game.move()
         self.assertTrue(self.game.is_over)
 
+    def test_move_when_game_over(self):
+        """測試遊戲結束時呼叫 move 應直接返回。"""
+        self.game.is_over = True
+        initial_snake = self.game.snake.copy()
+        self.game.move()
+        self.assertEqual(self.game.snake, initial_snake)
+
 if __name__ == "__main__":
     unittest.main()
