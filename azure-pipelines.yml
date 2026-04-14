@@ -17,15 +17,15 @@ stages:
     - checkout: self
       fetchDepth: 0
 
-    # 因為主檔案已移動到 pipelines/，引用的 template 就在同層
-    - template: steps-setup.yml
+    # 引用 pipelines 資料夾中的 templates
+    - template: pipelines/steps-setup.yml
     
     - script: |
         python scripts/metrics_logger.py
       displayName: 'Initialize Metrics'
 
-    - template: steps-tests.yml
-    - template: steps-sonar.yml
+    - template: pipelines/steps-tests.yml
+    - template: pipelines/steps-sonar.yml
 
 - stage: Performance
   displayName: 'Performance Measurement'
@@ -33,5 +33,5 @@ stages:
   jobs:
   - job: Benchmark
     steps:
-    - template: steps-setup.yml
-    - template: steps-metrics.yml
+    - template: pipelines/steps-setup.yml
+    - template: pipelines/steps-metrics.yml
