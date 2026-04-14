@@ -1,63 +1,52 @@
 import time
 import psutil
-import statistics
-import json
 import os
-import sys
+import json
+import statistics
 
-# 將專案路徑加入 PYTHONPATH 以利匯入 asgards
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-def measure_performance(func, iterations=5):
+def run_benchmark(cmd, iterations=3):
+    """執行多次並取平均值 (CPU, Memory, Response Time)"""
     cpu_usages = []
-    memory_usages = []
-    response_times = []
+    mem_usages = []
+    durations = []
 
-    process = psutil.Process(os.getpid())
+    print(f"Starting benchmark for: {cmd} ({iterations} iterations)")
 
     for i in range(iterations):
-        # 紀錄開始前狀態
         start_time = time.time()
+        process = psutil.Popen(cmd, shell=True)
         
-        # 執行目標函式
-        func()
+        cpu_percents = []
+        mem_rss = []
         
-        # 紀錄結束後狀態
+        while process.poll() is None:
+            try:
+                p = psutil.Process(process.pid)
+                cpu_percents.append(p.cpu_percent(interval=0.1))
+                mem_rss.append(p.memory_info().rss / (1024 * 1024)) # MB
+            except:
+                break
+        
         duration = time.time() - start_time
-        cpu_pct = psutil.cpu_percent(interval=None)
-        mem_info = process.memory_info().rss / (1024 * 1024) # MB
+        durations.append(duration)
+        if cpu_percents: cpu_usages.append(statistics.mean(cpu_percents))
+        if mem_rss: mem_usages.append(statistics.mean(mem_rss))
+        
+        print(f"  Iteration {i+1}: {round(duration, 2)}s")
 
-        response_times.append(duration)
-        cpu_usages.append(cpu_pct)
-        memory_usages.append(mem_info)
-
-    results = {
-        "cpu_performance": {
-            "avg_percent": round(statistics.mean(cpu_usages), 2),
-            "max_percent": max(cpu_usages)
-        },
-        "memory_performance": {
-            "avg_mb": round(statistics.mean(memory_usages), 2),
-            "max_mb": max(memory_usages)
-        },
-        "response_time": {
-            "avg_seconds": round(statistics.mean(response_times), 4),
-            "total_seconds": round(sum(response_times), 4)
-        }
+    report = {
+        "command": cmd,
+        "avg_response_time_sec": round(statistics.mean(durations), 4),
+        "avg_cpu_percent": round(statistics.mean(cpu_usages), 2) if cpu_usages else 0,
+        "avg_memory_mb": round(statistics.mean(mem_usages), 2) if mem_usages else 0,
+        "iterations": iterations
     }
-    return results
-
-def dummy_workload():
-    # 這裡可以替換成 asgards 中的真實邏輯
-    # 例如：from asgards.snake_game.engine import GameEngine
-    temp_list = [x**2 for x in range(100000)]
-    time.sleep(0.05)
-
-if __name__ == "__main__":
-    print("Running benchmarks...")
-    perf_results = measure_performance(dummy_workload, iterations=5)
     
     with open("performance_report.json", "w") as f:
-        json.dump(perf_results, f, indent=4)
+        json.dump(report, f, indent=4)
     
-    print(f"Benchmark finished. Avg Response Time: {perf_results['response_time']['avg_seconds']}s")
+    return report
+
+if __name__ == "__main__":
+    # 範例：測試執行 hello.py 或其他主要進入點
+    run_benchmark("python asgards/hello.py", iterations=3)

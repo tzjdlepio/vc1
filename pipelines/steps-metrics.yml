@@ -1,22 +1,23 @@
 steps:
 - script: |
     pip install psutil
+    # 執行多次基準測試 (3次)，計算 CPU / Memory / Response Time 平均值
     python scripts/benchmark.py
-  displayName: 'Run Performance Benchmark'
+  displayName: 'Benchmark: CPU/Mem/Time (Multi-run Average)'
 
 - script: |
-    # 紀錄效能階段並產生摘要
-    python -c "from scripts.metrics_logger import MetricsLogger; l=MetricsLogger('performance_stage'); l.save()"
-  displayName: 'Log Performance Metrics & Upload Summary'
+    # 紀錄 Token 數與最終摘要 (假設 mock 數據，您可改為讀取實際輸出)
+    python -c "from scripts.metrics_logger import MetricsLogger; l=MetricsLogger('final_report'); l.log_tokens(1500, 800); l.save()"
+  displayName: 'Log Token Usage & Final Summary'
 
 - task: PublishBuildArtifacts@1
-  displayName: 'Publish Performance Report'
+  displayName: 'Publish Performance Average Report'
   inputs:
     PathtoPublish: 'performance_report.json'
     ArtifactName: 'PerformanceReports'
 
 - task: PublishBuildArtifacts@1
-  displayName: 'Publish Execution Metrics'
+  displayName: 'Publish Execution & Token Metrics'
   inputs:
     PathtoPublish: 'execution_metrics.json'
     ArtifactName: 'ExecutionMetrics'

@@ -1,8 +1,24 @@
 steps:
 - script: |
     export PYTHONPATH=$PYTHONPATH:$(pwd)
+    # 執行測試並產出 junitxml
     pytest tests/ --doctest-modules --junitxml=test-results.xml --cov=asgards --cov-report=xml:coverage.xml
   displayName: 'Run Unittests with Coverage'
+
+- script: |
+    # 解析 junitxml 算出成功率
+    python -c "
+    import xml.etree.ElementTree as ET
+    tree = ET.parse('test-results.xml')
+    root = tree.getroot()
+    tests = int(root.attrib.get('tests', 0))
+    failures = int(root.attrib.get('failures', 0))
+    errors = int(root.attrib.get('errors', 0))
+    success_rate = ((tests - failures - errors) / tests * 100) if tests > 0 else 0
+    print(f'Total Tests: {tests}, Failures: {failures}, Errors: {errors}')
+    print(f'##vso[task.setvariable variable=TestSuccessRate]{success_rate}%')
+    "
+  displayName: 'Calculate Test Success Rate'
 
 - task: PublishTestResults@2
   condition: succeededOrFailed()
