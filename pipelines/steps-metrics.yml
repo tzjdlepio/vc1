@@ -1,0 +1,22 @@
+steps:
+- script: |
+    pip install psutil
+    python scripts/benchmark.py
+  displayName: 'Run Performance Benchmark'
+
+- script: |
+    # 紀錄效能階段並產生摘要
+    python -c "from scripts.metrics_logger import MetricsLogger; l=MetricsLogger('performance_stage'); l.save()"
+  displayName: 'Log Performance Metrics & Upload Summary'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Performance Report'
+  inputs:
+    PathtoPublish: 'performance_report.json'
+    ArtifactName: 'PerformanceReports'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Execution Metrics'
+  inputs:
+    PathtoPublish: 'execution_metrics.json'
+    ArtifactName: 'ExecutionMetrics'

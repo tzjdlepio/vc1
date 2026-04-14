@@ -1,0 +1,15 @@
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(pythonVersion)'
+  displayName: 'Use Python $(pythonVersion)'
+
+- script: |
+    python -m pip install --upgrade pip
+    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+    # 支援 asgards 子目錄
+    if [ -f asgards/snake_game/requirements.txt ]; then
+      pip install -r asgards/snake_game/requirements.txt
+    fi
+  displayName: 'Install dependencies'

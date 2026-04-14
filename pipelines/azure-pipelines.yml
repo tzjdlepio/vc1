@@ -1,0 +1,37 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  pythonVersion: '3.9'
+
+stages:
+- stage: QualityAndTest
+  displayName: 'Quality and Unit Test'
+  jobs:
+  - job: RunTests
+    displayName: 'Pytest & Sonar Analysis'
+    steps:
+    - checkout: self
+      fetchDepth: 0
+
+    # 因為主檔案已移動到 pipelines/，引用的 template 就在同層
+    - template: steps-setup.yml
+    
+    - script: |
+        python scripts/metrics_logger.py
+      displayName: 'Initialize Metrics'
+
+    - template: steps-tests.yml
+    - template: steps-sonar.yml
+
+- stage: Performance
+  displayName: 'Performance Measurement'
+  dependsOn: QualityAndTest
+  jobs:
+  - job: Benchmark
+    steps:
+    - template: steps-setup.yml
+    - template: steps-metrics.yml

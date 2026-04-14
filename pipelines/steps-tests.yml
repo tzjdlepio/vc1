@@ -1,0 +1,16 @@
+steps:
+- script: |
+    export PYTHONPATH=$PYTHONPATH:$(pwd)
+    pytest tests/ --doctest-modules --junitxml=test-results.xml --cov=asgards --cov-report=xml:coverage.xml
+  displayName: 'Run Unittests with Coverage'
+
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFiles: '**/test-results.xml'
+    testRunTitle: 'Python $(pythonVersion) Unit Tests'
+
+- task: PublishCodeCoverageResults@2
+  inputs:
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage.xml'
+    pathToSources: '$(System.DefaultWorkingDirectory)/asgards'
