@@ -92,5 +92,19 @@ def main():
         f.write(summary_content)
     print(f"\n報告已生成: benchmark_summary.md")
 
+    # 新增：生成 performance_report.json 以滿足 Pipeline 要求
+    import json
+    report_data = {
+        "target": target_script,
+        "average_response_time": avg_time,
+        "average_memory_kb": avg_mem,
+        "average_cpu_time": avg_cpu,
+        "runs": num_runs,
+        "timestamp": datetime.datetime.now().isoformat()
+    }
+    with open("performance_report.json", "w", encoding="utf-8") as f:
+        json.dump(report_data, f, indent=4)
+    print(f"JSON 報告已生成: performance_report.json")
+
 if __name__ == "__main__":
     main()
