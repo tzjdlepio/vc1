@@ -1,8 +1,8 @@
 steps:
 - script: |
-    pip install psutil
-    # 執行基準測試，請將 {TARGET_FILE} 替換為你要測試的檔案，{RUNS} 替換為執行次數
-    python3 scripts/benchmark.py asgards/snake_game/main.py -n 5
+    pip install psutil pygame
+    # 執行基準測試，加入 --benchmark 旗標讓遊戲自動結束
+    python3 scripts/benchmark.py asgards/snake_game/main.py -n 5 -- --benchmark
     if [ -f benchmark_summary.md ]; then
       echo "##vso[task.uploadsummary]$(pwd)/benchmark_summary.md"
     fi
