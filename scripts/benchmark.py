@@ -37,18 +37,14 @@ def main():
     parser.add_argument("target", help="要測試的 Python 程式路徑 (例如: main.py)")
     parser.add_argument("-n", "--runs", type=int, default=3, help="執行次數 (預設: 3)")
     
-    # 支援傳遞給目標程式的參數
-    parser.add_argument("remainder", nargs=argparse.REMAINDER, help="傳給目標程式的參數")
-
+    # 這裡可以選擇是否也要從外部傳入被測試程式的 arguments
     parsed_args = parser.parse_args()
 
     target_script = parsed_args.target
     num_runs = parsed_args.runs
     
-    # 處理傳給被測試程式的參數 (移除第一個 '--' 如果存在)
-    test_args = parsed_args.remainder
-    if test_args and test_args[0] == "--":
-        test_args = test_args[1:]
+    # 【關鍵修正】: 為了不讓遊戲卡住，我們必須傳遞 --benchmark 給 main.py
+    test_args = ["--benchmark"]
 
     all_metrics = []
     print(f"🚀 開始評測: {target_script}")
