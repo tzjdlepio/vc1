@@ -1,9 +1,12 @@
 steps:
 - script: |
     pip install psutil
-    # 執行多次基準測試 (3次)，計算 CPU / Memory / Response Time 平均值
-    python scripts/benchmark.py
-  displayName: 'Benchmark: CPU/Mem/Time (Multi-run Average)'
+    # 執行基準測試，請將 {TARGET_FILE} 替換為你要測試的檔案，{RUNS} 替換為執行次數
+    python3 scripts/benchmark.py asgards/snake_game/main.py -n 5
+    if [ -f benchmark_summary.md ]; then
+      echo "##vso[task.uploadsummary]$(pwd)/benchmark_summary.md"
+    fi
+  displayName: 'Performance Benchmarking (CPU, Memory, Time)'
 
 - script: |
     # 紀錄 Token 數與最終摘要 (假設 mock 數據，您可改為讀取實際輸出)
