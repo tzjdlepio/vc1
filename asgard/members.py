@@ -33,3 +33,29 @@ class MemberManager:
         """從專案團隊移除成員"""
         t_id = team_id or project_id
         return self.client.delete(f"/_apis/projects/{project_id}/teams/{t_id}/members/{user_id}")
+
+    def find_groups(self, project_name: str) -> Dict[str, str]:
+        """尋找 Project Administrators (Manager) 與 Contributors (Member) 的群組 Descriptor"""
+        # Graph API 通常在 vssps.dev.azure.com
+        # 這裡簡化實作，先列出所有 Graph Groups
+        response = self.client.get("/_apis/graph/groups", api_version="6.0-preview.1")
+        groups = response.get("value", [])
+        
+        result = {}
+        target_manager = f"[{project_name}]\\Project Administrators"
+        target_member = f"[{project_name}]\\Contributors"
+        
+        for g in groups:
+            if g.get("principalName") == target_manager:
+                result["ProjectManager"] = g["descriptor"]
+            elif g.get("principalName") == target_member:
+                result["ProjectMember"] = g["descriptor"]
+        return result
+
+    def add_user_to_group(self, user_descriptor: str, group_descriptor: str) -> Dict[str, Any]:
+        """將人加入群組"""
+        return self.client.put(f"/_apis/graph/memberships/{user_descriptor}/{group_descriptor}", api_version="6.0-preview.1")
+
+    def remove_user_from_group(self, user_descriptor: str, group_descriptor: str) -> bool:
+        """將人移除群組"""
+        return self.client.delete(f"/_apis/graph/memberships/{user_descriptor}/{group_descriptor}", api_version="6.0-preview.1")

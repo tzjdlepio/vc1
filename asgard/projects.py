@@ -39,3 +39,8 @@ class ProjectManager:
     def delete_project(self, project_id: str) -> bool:
         """刪除 Project"""
         return self.client.delete(f"/_apis/projects/{project_id}")
+
+    def exists_project(self, name: str) -> bool:
+        """檢查專案名稱是否存在"""
+        projects = self.list_projects()
+        return any(p['name'].lower() == name.lower() for p in projects)

@@ -1,39 +1,48 @@
-# Asgard Project Constitution
+# Asgard Python Package Constitution
 
-## 1. 專案願景
-Asgard 是一個輕量化、易用的 Azure DevOps REST API Python 封裝庫。旨在簡化開發者對 Azure DevOps 資源的操作，並提供一致的開發介面。
+## Core Principles
 
-## 2. 命名規範
-- **Module/Package**: 全小寫，底線分隔 (Snake Case)，如 `asgard.projects`。
-- **Class**: 大駝峰 (Pascal Case)，如 `AsgardClient`。
-- **Function/Method**: 小寫底線 (Snake Case)，如 `list_projects`。
-- **Variables**: 具備語義的小寫底線，避免單一字母命名。
+### I. REST-Centric Mapping
+Asgard must maintain a 1-to-1 mapping logic between Python methods and Azure DevOps REST API endpoints. Every method should clearly document which API it calls.
+**Reason**: Ensures predictability for developers familiar with Azure DevOps documentation and simplifies troubleshooting.
 
-## 3. 模組分工
-- `client.py`: 唯一負責與網路層 (requests) 接軌的模組，處理底層通訊與共通 Headers。
-- `config.py`: 集中管理所有來自環境變數或設定檔的參數。
-- `exceptions.py`: 定義專案專屬的異常層級，方便調用者捕獲。
-- `models.py`: 封裝 API 回傳的 JSON 數據，提供物件化存取。
-- `[resource].py`: 各資源的商業邏輯與 URL 構建。
+### II. Resource-Oriented Architecture
+Logic must be strictly partitioned into modules based on Azure DevOps resources: `projects.py`, `repos.py`, `members.py`, `pipelines.py`, and `releases.py`. Each module contains a Manager class (e.g., `ProjectManager`).
+**Reason**: Keeps the codebase organized and allows for focused maintenance as the API grows.
 
-## 4. 認證資訊管理方式
-- **禁止硬編碼 (Hard-coding)**: 任何 PAT (Personal Access Token) 或 URL 均不得出現在程式碼中。
-- **環境變數**: 優先從 `.env` 檔案或系統環境變數讀取。
-- **優先順序**: 實體化 Client 時傳入參數 > 環境變數。
+### III. Fail-Fast & Explicit Exceptions
+All non-2xx/3xx HTTP responses must raise an `AsgardAPIException`. The exception must contain the status code, reason, and the raw response body from the API.
+**Reason**: Prevents silent failures and provides immediate feedback for debugging API-related issues.
 
-## 5. 錯誤處理方式
-- 網路錯誤、4xx/5xx 狀態碼應被轉換為 `AsgardException` 或其子類。
-- 每個 API 呼叫必須執行 `response.raise_for_status()` 或在 Client 層級統一判斷。
-- 應提供具備除錯資訊的錯誤訊息 (包含狀態碼與 API 回傳內容)。
+### IV. Environment-Driven & Secure
+No sensitive data (PAT, Organization URL) shall be hard-coded. All configuration must be loaded via `asgard.config.Config` from environment variables.
+**Reason**: Prevents credential leakage and enables easy configuration across different environments (Dev, CI, Prod).
 
-## 6. CRUD Function 設計風格
-- **Create**: `create_[resource](**kwargs)` -> 回傳新建立的物件。
-- **Read (List)**: `list_[resource](**filters)` -> 回傳物件列表。
-- **Read (Get)**: `get_[resource](identity)` -> 回傳單一物件。
-- **Update**: `update_[resource](identity, **updates)` -> 回傳更新後的物件。
-- **Delete**: `delete_[resource](identity)` -> 布林值或空回傳。
+### V. Atomic & Idempotent Design
+Operations like creating branches, setting policies, or managing memberships should be atomic. Where possible, methods should be designed to handle re-execution gracefully (e.g., checking existence before creation).
+**Reason**: Ensures stability in CI/CD pipelines where retries are common.
 
-## 7. 測試原則
-- **100% Mocking**: 單元測試不應依賴真實的 Azure DevOps 環境。
-- **使用 pytest**: 配合 `unittest.mock` 或 `responses` 套件模擬 API 回傳。
-- **覆蓋率**: 每個 CRUD 至少有一個成功的 Test Case 與一個失敗的 Test Case。
+## Technical Requirements
+
+### 1. Project Management
+- Must support CRUD operations.
+- Must provide a dedicated `exists_project(name)` method for easy validation.
+
+### 2. Repository Management
+- **File Ops**: Support fetching content and pushing updates (Commits).
+- **Size Constraints**: Must be able to enforce a 5MB repository size limit via Azure DevOps settings/policies.
+- **Branch Management**: Support branch creation and policy enforcement (Work Item binding, Comment resolution, Base Merge mode).
+
+### 3. Member & Identity Management
+- Support CRUD for project members.
+- Support group-based management, specifically finding "Project Managers" and "Project Members" (Contributors) groups.
+- Enable adding/removing users from specific groups using descriptors.
+
+### 4. Pipeline & Release Automation
+- **Pipeline**: Enable creating pipelines from YML files stored in repositories.
+- **Retention**: Strictly enforce retention policies for Releases (deletion days, default keep days, max versions, and associated build records).
+
+## Governance
+This Constitution is the source of truth for all development within the Asgard package. Any new feature must be validated against these principles before merging.
+
+**Version**: 1.0.0 | **Ratified**: 2026-04-22 | **Last Amended**: 2026-04-22
