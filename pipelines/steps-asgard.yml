@@ -1,0 +1,8 @@
+steps:
+- script: |
+    export PYTHONPATH=$PYTHONPATH:$(pwd)
+    python scripts/run_asgard_automation.py
+  displayName: 'Run Asgard Automation Runbook'
+  env:
+    ADO_ORG_URL: $(SYSTEM.TEAMFOUNDATIONCOLLECTIONURI)
+    ADO_PAT: $(AZURE_DEVOPS_PAT) # 您需要在 ADO 變數中設定這個密碼
