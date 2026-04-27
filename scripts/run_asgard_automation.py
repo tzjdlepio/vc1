@@ -8,6 +8,11 @@ def run():
     org_url = os.getenv("ADO_ORG_URL")
     pat = os.getenv("ADO_PAT")
 
+    print(f"DEBUG: ADO_ORG_URL present: {bool(org_url)}")
+    print(f"DEBUG: ADO_PAT present: {bool(pat)}")
+    if pat:
+        print(f"DEBUG: ADO_PAT length: {len(pat)}")
+
     if not org_url or not pat:
         print("❌ 錯誤：找不到環境變數 ADO_ORG_URL 或 ADO_PAT")
         # 為了演示，我們不直接 sys.exit(1)，讓 Pipeline 繼續跑完
