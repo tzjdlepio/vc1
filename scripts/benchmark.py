@@ -43,8 +43,8 @@ def main():
     target_script = parsed_args.target
     num_runs = parsed_args.runs
     
-    # 【關鍵修正】: 為了不讓遊戲卡住，我們必須傳遞 --benchmark 給 main.py
-    test_args = ["--benchmark"]
+    # 被測試程式本身的參數（可視需求修改為動態）
+    test_args = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 
     all_metrics = []
     print(f"🚀 開始評測: {target_script}")
@@ -91,20 +91,6 @@ def main():
     with open("benchmark_summary.md", "w", encoding="utf-8") as f:
         f.write(summary_content)
     print(f"\n報告已生成: benchmark_summary.md")
-
-    # 新增：生成 performance_report.json 以滿足 Pipeline 要求
-    import json
-    report_data = {
-        "target": target_script,
-        "average_response_time": avg_time,
-        "average_memory_kb": avg_mem,
-        "average_cpu_time": avg_cpu,
-        "runs": num_runs,
-        "timestamp": datetime.datetime.now().isoformat()
-    }
-    with open("performance_report.json", "w", encoding="utf-8") as f:
-        json.dump(report_data, f, indent=4)
-    print(f"JSON 報告已生成: performance_report.json")
 
 if __name__ == "__main__":
     main()
