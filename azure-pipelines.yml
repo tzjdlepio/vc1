@@ -20,6 +20,10 @@ stages:
     # 引用 pipelines 資料夾中的 templates
     - template: pipelines/steps-setup.yml
     
+    - script: |
+        python scripts/metrics_logger.py
+      displayName: 'Initialize Metrics'
+
     - template: pipelines/steps-tests.yml
     - template: pipelines/steps-sonar.yml
 

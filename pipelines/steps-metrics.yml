@@ -1,9 +1,26 @@
 steps:
 - script: |
     pip install psutil pygame
-    # 執行基準測試
+    # 執行基準測試，benchmark.py 內部會自動帶入 --benchmark 讓遊戲結束
     python3 scripts/benchmark.py asgards/snake_game/main.py -n 5
     if [ -f benchmark_summary.md ]; then
       echo "##vso[task.uploadsummary]$(pwd)/benchmark_summary.md"
     fi
   displayName: 'Performance Benchmarking (CPU, Memory, Time)'
+
+- script: |
+    # 紀錄 Token 數與最終摘要 (假設 mock 數據，您可改為讀取實際輸出)
+    python -c "from scripts.metrics_logger import MetricsLogger; l=MetricsLogger('final_report'); l.log_tokens(1500, 800); l.save()"
+  displayName: 'Log Token Usage & Final Summary'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Performance Average Report'
+  inputs:
+    PathtoPublish: 'performance_report.json'
+    ArtifactName: 'PerformanceReports'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Execution & Token Metrics'
+  inputs:
+    PathtoPublish: 'execution_metrics.json'
+    ArtifactName: 'ExecutionMetrics'
