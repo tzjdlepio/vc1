@@ -3,47 +3,53 @@ import sys
 from asgard import AsgardClient, AsgardRunbooks
 
 def run():
+    # 檢查 Dry Run 模式
+    dry_run_env = os.getenv("ASGARD_DRY_RUN", "false").lower() == "true"
+    
     # 從環境變數獲取連線資訊
-    # 注意：在 ADO Pipeline 中需要設定這些變數
     org_url = os.getenv("ADO_ORG_URL")
     pat = os.getenv("ADO_PAT")
 
-    print(f"DEBUG: ADO_ORG_URL present: {bool(org_url)}")
-    print(f"DEBUG: ADO_PAT present: {bool(pat)}")
-    if pat:
-        print(f"DEBUG: ADO_PAT length: {len(pat)}")
+    print("=" * 60)
+    if dry_run_env:
+        print("🛡️  模式: [DRY RUN / SIMULATION]")
+        print("💡 說明: 目前處於模擬模式，不會對 Azure DevOps 產生任何真實變動。")
+    else:
+        print("🔥 模式: [REAL EXECUTION]")
+        print("⚠️  警告: 目前處於真實執行模式，將會呼叫 API 進行實體操作。")
+    print("=" * 60)
 
-    if not org_url or not pat:
-        print("❌ 錯誤：找不到環境變數 ADO_ORG_URL 或 ADO_PAT")
-        # 為了演示，我們不直接 sys.exit(1)，讓 Pipeline 繼續跑完
-        return
+    # 在 Dry Run 模式下，即使沒有 PAT 也可以繼續執行模擬
+    if not dry_run_env and (not org_url or not pat):
+        print("❌ 錯誤：真實執行模式下找不到環境變數 ADO_ORG_URL 或 ADO_PAT")
+        sys.exit(1)
 
-    client = AsgardClient(org_url, pat)
+    # 初始化 Client 與 Runbooks
+    client = AsgardClient(org_url or "https://simulated.dev.azure.com/org", pat or "simulated-pat")
     runbooks = AsgardRunbooks(client)
 
     project_name = f"AutoProject-{os.getenv('BUILD_BUILDID', 'Local')}"
     
-    print(f"🚀 [Asgard] 開始執行專案自動化建立流程: {project_name}")
-    print("=" * 50)
+    print(f"🚀 [Asgard] 開始執行流程: {project_name}")
 
     # 執行 Runbook
-    # 這裡我們用一個測試專案名稱，實際使用時可從參數傳入
     report = runbooks.create_project_runbook(
         project_name=project_name,
-        managers=["admin@example.com"] # 範例人員
+        managers=["admin@example.com"]
     )
 
-    # 輸出結果至 ADO 日誌
-    if report["status"] == "success":
-        print("✅ 流程執行成功！步驟詳情：")
-        for step in report["steps"]:
-            # 這裡就是您想在日誌中看到的內容
-            print(f"  - [DONE] {step['step']}")
-        print("=" * 50)
-        print(f"🎉 專案 {project_name} 已成功初始化並完成所有配置。")
+    # 輸出結果
+    print("-" * 60)
+    if report["status"] in ["success", "simulated_success"]:
+        print(f"✅ 流程完成！(狀態: {report['status']})")
+        if "steps" in report:
+            for step in report["steps"]:
+                print(f"  - [{step['step']}]: {step['result']}")
+        print("=" * 60)
+        print(f"🎉 專案 {project_name} 處理完畢。")
     else:
         print(f"❌ 流程執行失敗: {report.get('error')}")
-        # sys.exit(1) # 若要讓 Pipeline 報錯可取消註解
+        sys.exit(1)
 
 if __name__ == "__main__":
     run()
