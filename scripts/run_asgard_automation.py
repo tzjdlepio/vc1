@@ -1,6 +1,7 @@
 import os
 import sys
-from asgard import AsgardClient, AsgardRunbooks
+from asgard import AsgardClient
+from runbooks.create_project import CreateProjectRunbook
 
 def run():
     # 檢查 Dry Run 模式
@@ -24,16 +25,18 @@ def run():
         print("❌ 錯誤：真實執行模式下找不到環境變數 ADO_ORG_URL 或 ADO_PAT")
         sys.exit(1)
 
-    # 初始化 Client 與 Runbooks
+    # 初始化 Client
     client = AsgardClient(org_url or "https://simulated.dev.azure.com/org", pat or "simulated-pat")
-    runbooks = AsgardRunbooks(client)
+    
+    # 初始化特定的 Runbook
+    runbook = CreateProjectRunbook(client)
 
     project_name = f"AutoProject-{os.getenv('BUILD_BUILDID', 'Local')}"
     
     print(f"🚀 [Asgard] 開始執行流程: {project_name}")
 
     # 執行 Runbook
-    report = runbooks.create_project_runbook(
+    report = runbook.execute(
         project_name=project_name,
         managers=["admin@example.com"]
     )

@@ -4,7 +4,6 @@ from .repos import RepoManager
 from .members import MemberManager
 from .pipelines import PipelineManager
 from .releases import ReleaseManager
-from .runbooks import AsgardRunbooks
 
 __all__ = [
     "AsgardClient",
@@ -12,6 +11,5 @@ __all__ = [
     "RepoManager",
     "MemberManager",
     "PipelineManager",
-    "ReleaseManager",
-    "AsgardRunbooks"
+    "ReleaseManager"
 ]

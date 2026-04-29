@@ -1,26 +1,21 @@
 import os
 from typing import List, Dict, Any
-from .client import AsgardClient
-from .projects import ProjectManager
-from .repos import RepoManager
-from .members import MemberManager
-from .pipelines import PipelineManager
+from asgard import AsgardClient, ProjectManager, RepoManager, MemberManager, PipelineManager
 
-class AsgardRunbooks:
+class CreateProjectRunbook:
     def __init__(self, client: AsgardClient):
         self.projects = ProjectManager(client)
         self.repos = RepoManager(client)
         self.members = MemberManager(client)
         self.pipelines = PipelineManager(client)
-        # 檢查是否啟用 Dry Run 模式
         self.dry_run = os.getenv("ASGARD_DRY_RUN", "false").lower() == "true"
 
-    def create_project_runbook(self, 
-                                project_name: str, 
-                                managers: List[str] = None, 
-                                members: List[str] = None,
-                                template_repo_id: str = None,
-                                template_path: str = "azure-pipelines.yml") -> Dict[str, Any]:
+    def execute(self, 
+                project_name: str, 
+                managers: List[str] = None, 
+                members: List[str] = None,
+                template_repo_id: str = None,
+                template_path: str = "azure-pipelines.yml") -> Dict[str, Any]:
         """
         ## create_project runbook
         支援 Dry Run / Simulation 模式
@@ -56,7 +51,7 @@ class AsgardRunbooks:
                 ]
             }
 
-        # --- 以下為真實執行模式 (保留原程式碼) ---
+        # --- 以下為真實執行模式 ---
         results = {"status": "success", "steps": []}
 
         # 1. 預檢查
@@ -112,27 +107,4 @@ class AsgardRunbooks:
                 self.members.add_user_to_group(m, groups["ProjectMember"])
         results["steps"].append({"step": "assign_members", "groups_found": list(groups.keys())})
 
-        return results
-
-    def modify_member_runbook(self, project_name: str, group_type: str, users: List[str], action: str = "add") -> Dict[str, Any]:
-        """
-        ## modify_member runbook
-        支援 Dry Run 模式
-        """
-        if self.dry_run:
-            print(f"\n[DRY RUN] 👥 模擬修改成員: {project_name} | 群組: {group_type} | 動作: {action}")
-            return {"status": "simulated_success", "mode": "dry_run", "processed": users}
-
-        groups = self.members.find_groups(project_name)
-        target_group = groups.get(group_type)
-        if not target_group:
-            return {"status": "failed", "error": f"Group type '{group_type}' not found."}
-
-        results = {"status": "success", "processed": []}
-        for user in users:
-            if action == "add":
-                self.members.add_user_to_group(user, target_group)
-            else:
-                self.members.remove_user_from_group(user, target_group)
-            results["processed"].append(user)
         return results
