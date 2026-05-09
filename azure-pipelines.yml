@@ -35,13 +35,4 @@ stages:
     steps:
     - template: pipelines/steps-setup.yml
     - template: pipelines/steps-metrics.yml
-
-- stage: Automation
-  displayName: 'Asgard Runbook Automation'
-  dependsOn: Performance
-  jobs:
-  - job: RunRunbook
-    steps:
-    - template: pipelines/steps-setup.yml
-    - template: pipelines/steps-asgard.yml
  

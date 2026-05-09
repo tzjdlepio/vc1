@@ -8,51 +8,20 @@ class CreateProjectRunbook:
         self.repos = RepoManager(client)
         self.members = MemberManager(client)
         self.pipelines = PipelineManager(client)
-        self.dry_run = os.getenv("ASGARD_DRY_RUN", "false").lower() == "true"
 
     def execute(self, 
                 project_name: str, 
+                repo_name: str = None,
                 managers: List[str] = None, 
                 members: List[str] = None,
                 template_repo_id: str = None,
                 template_path: str = "azure-pipelines.yml") -> Dict[str, Any]:
         """
         ## create_project runbook
-        支援 Dry Run / Simulation 模式
+        執行真實專案建立流程。
         """
-        if self.dry_run:
-            print(f"\n[DRY RUN] 🚀 模擬啟動專案自動化: {project_name}")
-            print("-" * 40)
-            print("-> 模擬檢查 (專案是否存在 & Repo 名稱是否與專案名稱相同)")
-            print("-> 模擬建立 Project")
-            print("-> 模擬建立 Repo")
-            print("-> 模擬將專案名下的 Repo 都設定大小為 5MB")
-            print("-> 模擬將 pipeline.yml 複製到 repo 之中(路徑: pipelines/main.yml)")
-            print("-> 模擬將上述的 yaml 檔案建立成 build")
-            print("--> 模擬建立 [develop, uat, master, hotfix] 的 branch")
-            print("---> 模擬建立這些 branch 的 br_policy")
-            print("--> 模擬將對應人員加進 ProjectManager 與 ProjectMember 群組")
-            print("-" * 40)
-            print("[DRY RUN] 模擬完成\n")
-            
-            return {
-                "status": "simulated_success",
-                "mode": "dry_run",
-                "project_name": project_name,
-                "steps": [
-                    {"step": "pre_check", "result": "skipped"},
-                    {"step": "create_project", "result": "simulated"},
-                    {"step": "create_repo", "result": "simulated"},
-                    {"step": "set_size_limit", "result": "simulated"},
-                    {"step": "push_pipeline_yml", "result": "simulated"},
-                    {"step": "create_pipeline", "result": "simulated"},
-                    {"step": "create_branches_and_policies", "result": "simulated"},
-                    {"step": "assign_members", "result": "simulated"}
-                ]
-            }
-
-        # --- 以下為真實執行模式 ---
         results = {"status": "success", "steps": []}
+        target_repo_name = repo_name or project_name
 
         # 1. 預檢查
         if self.projects.exists_project(project_name):
@@ -65,7 +34,7 @@ class CreateProjectRunbook:
         results["steps"].append({"step": "create_project", "result": project_op})
         
         # 3. 建立 Repo
-        repo = self.repos.create_repo(project_name, project_name)
+        repo = self.repos.create_repo(project_name, target_repo_name)
         repo_id = repo["id"]
         results["steps"].append({"step": "create_repo", "result": repo})
 

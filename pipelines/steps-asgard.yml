@@ -1,9 +1,0 @@
-steps:
-- script: |
-    export PYTHONPATH=$PYTHONPATH:$(pwd)
-    python scripts/run_asgard_automation.py
-  displayName: 'Run Asgard Automation Runbook (Dry Run)'
-  env:
-    ASGARD_DRY_RUN: "true"
-    ADO_ORG_URL: $(SYSTEM.TEAMFOUNDATIONCOLLECTIONURI)
-    ADO_PAT: $(AZURE_DEVOPS_PAT)
