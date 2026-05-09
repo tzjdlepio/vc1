@@ -1,3 +1,33 @@
+parameters:
+- name: runbook_name
+  displayName: Runbook (Manual Execution)
+  type: string
+  default: none
+  values:
+  - none
+  - create_project
+  - modify_member
+
+- name: project_name
+  displayName: Project name
+  type: string
+  default: ''
+
+- name: repo_name
+  displayName: Repo name
+  type: string
+  default: ''
+
+- name: manager_email
+  displayName: Project Manager email
+  type: string
+  default: ''
+
+- name: member_email
+  displayName: Project Member email
+  type: string
+  default: ''
+
 trigger:
 - main
 
@@ -17,7 +47,6 @@ stages:
     - checkout: self
       fetchDepth: 0
 
-    # 引用 pipelines 資料夾中的 templates
     - template: pipelines/steps-setup.yml
     
     - script: |
@@ -35,4 +64,25 @@ stages:
     steps:
     - template: pipelines/steps-setup.yml
     - template: pipelines/steps-metrics.yml
- 
+
+- stage: Automation
+  displayName: 'Asgard Runbook Automation'
+  dependsOn: Performance
+  condition: and(succeeded(), ne('${{ parameters.runbook_name }}', 'none'))
+  jobs:
+  - job: RunRunbook
+    displayName: '執行 Runbook'
+    steps:
+    - template: pipelines/steps-setup.yml
+    - script: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
+        python scripts/run_runbook.py \
+          --runbook-name "${{ parameters.runbook_name }}" \
+          --project-name "${{ parameters.project_name }}" \
+          --repo_name "${{ parameters.repo_name }}" \
+          --manager-email "${{ parameters.manager_email }}" \
+          --member-email "${{ parameters.member_email }}"
+      displayName: 'Running ${{ parameters.runbook_name }}'
+      env:
+        ADO_ORG_URL: $(ADO_ORG_URL)
+        ADO_PAT: $(AZURE_DEVOPS_PAT)

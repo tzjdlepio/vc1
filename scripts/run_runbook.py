@@ -15,16 +15,16 @@ def main():
     parser = argparse.ArgumentParser(description="Asgard Runbook Dispatcher")
     
     # 通用參數
-    parser.add_argument("--runbook_name", required=True, help="要執行的 Runbook 名稱 (例如: create_project)")
-    parser.add_argument("--project_name", required=True, help="目標 Azure DevOps 專案名稱")
+    parser.add_argument("--runbook-name", dest="runbook_name", required=True, help="要執行的 Runbook 名稱 (例如: create_project)")
+    parser.add_argument("--project-name", dest="project_name", required=True, help="目標 Azure DevOps 專案名稱")
     
     # create_project 專用參數
-    parser.add_argument("--repo_name", help="要建立的 Repository 名稱")
-    parser.add_argument("--manager_email", help="Project Manager 的 Email (多個請用逗號分隔)")
-    parser.add_argument("--member_email", help="Project Member 的 Email (多個請用逗號分隔)")
+    parser.add_argument("--repo-name", dest="repo_name", help="要建立的 Repository 名稱")
+    parser.add_argument("--manager-email", dest="manager_email", help="Project Manager 的 Email (多個請用逗號分隔)")
+    parser.add_argument("--member-email", dest="member_email", help="Project Member 的 Email (多個請用逗號分隔)")
     
     # modify_member 專用參數 (保留擴充性)
-    parser.add_argument("--group_type", help="目標群組類型")
+    parser.add_argument("--group-type", dest="group_type", help="目標群組類型")
     parser.add_argument("--users", help="使用者 Email (多個請用逗號分隔)")
     parser.add_argument("--action", choices=["add", "remove"], default="add", help="執行的動作 (add/remove)")
 

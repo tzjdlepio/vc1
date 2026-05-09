@@ -1,68 +1,59 @@
-# Parameterized Runbook Pipeline
-# 此 Pipeline 用於手動觸發並選擇要執行的 Runbook
+parameters:
+- name: runbook_name
+  displayName: Runbook
+  type: string
+  default: create_project
+  values:
+  - create_project
+  - modify_member
+
+- name: project_name
+  displayName: Project name
+  type: string
+  default: ''
+
+- name: repo_name
+  displayName: Repo name
+  type: string
+  default: ''
+
+- name: manager_email
+  displayName: Project Manager email
+  type: string
+  default: ''
+
+- name: member_email
+  displayName: Project Member email
+  type: string
+  default: ''
 
 trigger: none
 pr: none
 
-parameters:
-- name: runbook_name
-  displayName: "選擇要執行的 Runbook"
-  type: string
-  default: create_project
-  values:
-    - create_project
-    - modify_member
-
-- name: project_name
-  displayName: "Azure DevOps 專案名稱"
-  type: string
-
-- name: repo_name
-  displayName: "Repository 名稱 (僅限 create_project)"
-  type: string
-  default: ""
-
-- name: manager_email
-  displayName: "Project Manager Email (逗號分隔)"
-  type: string
-  default: ""
-
-- name: member_email
-  displayName: "Project Member Email (逗號分隔)"
-  type: string
-  default: ""
-
-variables:
-  pythonVersion: '3.10'
-
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: ubuntu-latest
 
-stages:
-- stage: RunbookExecution
-  displayName: 'Runbook 實體執行'
-  jobs:
-  - job: Execute
-    displayName: '執行 Runbook'
-    steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '$(pythonVersion)'
-      displayName: 'Set up Python'
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.10'
+  displayName: 'Set up Python'
 
-    - script: |
-        pip install -r requirements.txt
-      displayName: 'Install Dependencies'
+- script: |
+    pip install -r requirements.txt
+  displayName: 'Install Dependencies'
 
-    - script: |
-        export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
-        python scripts/run_runbook.py \
-          --runbook_name "${{ parameters.runbook_name }}" \
-          --project_name "${{ parameters.project_name }}" \
-          --repo_name "${{ parameters.repo_name }}" \
-          --manager_email "${{ parameters.manager_email }}" \
-          --member_email "${{ parameters.member_email }}"
-      displayName: 'Executing Runbook: ${{ parameters.runbook_name }}'
-      env:
-        ADO_ORG_URL: $(ADO_ORG_URL)
-        ADO_PAT: $(AZURE_DEVOPS_PAT)
+- script: |
+    export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
+    echo "Selected runbook: ${{ parameters.runbook_name }}"
+
+    python scripts/run_runbook.py \
+      --runbook-name "${{ parameters.runbook_name }}" \
+      --project-name "${{ parameters.project_name }}" \
+      --repo-name "${{ parameters.repo_name }}" \
+      --manager-email "${{ parameters.manager_email }}" \
+      --member-email "${{ parameters.member_email }}"
+  displayName: 'Run selected runbook'
+  env:
+    ADO_ORG_URL: $(ADO_ORG_URL)
+    ADO_PAT: $(AZURE_DEVOPS_PAT)

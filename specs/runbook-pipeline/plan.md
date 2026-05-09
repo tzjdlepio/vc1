@@ -14,11 +14,11 @@
   ```yaml
   - script: |
       python scripts/run_runbook.py \
-        --runbook_name "$(runbook_name)" \
-        --project_name "$(project_name)" \
-        --repo_name "$(repo_name)" \
-        --manager_email "$(manager_email)" \
-        --member_email "$(member_email)"
+        --runbook-name "${{ parameters.runbook_name }}" \
+        --project-name "${{ parameters.project_name }}" \
+        --repo-name "${{ parameters.repo_name }}" \
+        --manager-email "${{ parameters.manager_email }}" \
+        --member-email "${{ parameters.member_email }}"
   ```
 
 ## 3. 如何根據 Parameter 選擇 Runbook
